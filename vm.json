@@ -1,0 +1,112 @@
+{
+  "variables": {
+    "vm_name": "nz_tidepool-ubuntu-22.10",
+
+    "iso_checksum": "sha256:a19d956e993a16fc6496c371e36dcc0eb85d2bdf6a8e86028b92ce62e9f585cd",
+    "iso_name": "ubuntu-22.10-live-server-arm64.iso",
+    "iso_path": "iso",
+    "iso_url": "http://cdimage.ubuntu.com/ubuntu/releases/kinetic/release/ubuntu-22.10-live-server-arm64.iso",
+
+    "cpus": "1",
+    "memory": "2096",
+    "disable_ipv6": "true",
+    "disk_size": "20000",
+    "headless": "true",
+    "hostname": "nz_tidepool",
+
+    "preseed": "preseed.cfg",
+    "ssh_fullname": "nz_tidepool",
+    "ssh_password": "<to-do>",
+    "ssh_username": "nz_tidepool",
+    "version": "0.1",
+    "virtualbox_guest_os_type": "Ubuntu_64"
+  },
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "vm_name": "{{user `vm_name`}}",
+      "iso_checksum": "{{user `iso_checksum`}}",
+      "iso_urls": [
+        "{{user `iso_path`}}/{{user `iso_name`}}",
+        "{{user `iso_url`}}"
+      ],
+      "output_directory": "output-{{user `vm_name`}}",
+
+      "boot_command": [
+        "<esc><esc><enter><wait>",
+        "/install/vmlinuz<wait> ",
+        "initrd=/install/initrd.gz ",
+        "preseed/url=http://{{.HTTPIP}}:{{.HTTPPort}}/{{user `preseed`}} ",
+        "debian-installer=en_US auto locale=en_US kbd-chooser/method=us ",
+        "hostname={{user `hostname`}} ",
+        "grub-installer/bootdev=/dev/sda<wait> ",
+        "fb=false debconf/frontend=noninteractive ",
+        "keyboard-configuration/modelcode=pc105 keyboard-configuration/layout=fr keyboard-configuration/layoutcode=fr ",
+        "keyboard-configuration/variant=azerty console-setup/ask_detect=false ",
+        "-- <enter>"
+      ],
+      "disk_size": "{{user `disk_size`}}",
+      "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+      "guest_os_type": "{{user `virtualbox_guest_os_type`}}",
+      "hard_drive_interface": "sata",
+      "headless": "{{user `headless`}}",
+      "http_directory": "http",
+
+      "shutdown_command": "echo '{{user `ssh_password`}}'|sudo -S shutdown -P now",
+      "ssh_password": "{{user `ssh_password`}}",
+      "ssh_username": "{{user `ssh_username`}}",
+      "ssh_wait_timeout": "1h",
+      "vboxmanage": [
+        ["modifyvm", "{{.Name}}", "--audio", "none"],
+        ["modifyvm", "{{.Name}}", "--usb", "off"],
+        ["modifyvm", "{{.Name}}", "--vram", "32"],
+        ["modifyvm", "{{.Name}}", "--graphicscontroller", "vmsvga"],
+        ["modifyvm", "{{.Name}}", "--vrde", "off"],
+        ["modifyvm", "{{.Name}}", "--nictype1", "virtio"],
+        ["modifyvm", "{{.Name}}", "--memory", "{{user `memory`}}"],
+        ["modifyvm", "{{.Name}}", "--cpus", "{{user `cpus`}}"]
+      ],
+      "virtualbox_version_file": ".vbox_version"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "docker.service",
+      "destination": "/tmp/docker.service"
+    },
+    {
+      "type": "file",
+      "source": "scripts",
+      "destination": "/home/{{user `ssh_username`}}"
+    },
+    {
+      "environment_vars": [
+        "DEBIAN_FRONTEND=noninteractive",
+        "SSH_USERNAME={{user `ssh_username`}}",
+        "SSH_PASSWORD={{user `ssh_password`}}"
+      ],
+      "execute_command": "echo '{{user `ssh_password`}}'|{{.Vars}} sudo -E -S bash '{{.Path}}'",
+      "expect_disconnect": true,
+      "scripts": ["scripts/virtualbox.sh"],
+      "type": "shell"
+    },
+    {
+      "environment_vars": [
+        "DEBIAN_FRONTEND=noninteractive",
+        "SSH_USERNAME={{user `ssh_username`}}",
+        "SSH_PASSWORD={{user `ssh_password`}}"
+      ],
+      "execute_command": "echo '{{user `ssh_password`}}'|{{.Vars}} sudo -E -S bash '{{.Path}}'",
+      "scripts": [
+        "scripts/docker.sh",
+        "scripts/k8s.sh",
+        "scripts/k3s.sh",
+        "scripts/user.sh",
+        "scripts/mongo.sh",
+        "scripts/tidepool.sh"
+      ],
+      "type": "shell"
+    }
+  ]
+}
