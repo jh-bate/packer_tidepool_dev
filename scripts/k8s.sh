@@ -33,17 +33,11 @@ echo "==> Installing ctlptl $CTLPTL_VERSION"
 curl -fsSL https://github.com/tilt-dev/ctlptl/releases/download/v${CTLPTL_VERSION}/ctlptl.${CTLPTL_VERSION}.linux.x86_64.tar.gz
 tar -xzv -C /usr/local/bin ctlptl
 
-# ctlptl config
-# ctlptl apply -f Kindconfig.yaml
-
 echo "==> Installing gloo"
 
 curl -sL https://run.solo.io/gloo/install | sh
 export PATH=$HOME/.gloo/bin:$PATH
 glooctl version
-
-# TODO apply 
-# glooctl install gateway -n default --values Glooconfig.yaml
 
 echo "==> Installing netcat"
 
