@@ -309,5 +309,5 @@ variable "winrm_username" {
 }
 variable "vm_name" {
   type    = string
-  default = null
+  default = "tidepool_local"
 }
