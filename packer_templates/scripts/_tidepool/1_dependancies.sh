@@ -1,9 +1,8 @@
 #!/bin/bash -eu
 
 echo "==> Updating list of repositories"
-apt-get clean
-apt-get -y update
+sudo apt-get clean
+sudo apt-get -y update
 
 echo "==> Installing base package"
-apt-get install -y git vim gpm golang-go
-
+sudo apt-get install -y git gpm golang-go

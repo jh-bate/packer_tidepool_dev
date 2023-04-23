@@ -399,3 +399,5 @@ FodyWeavers.xsd
 *.vdi
 
 builds/**
+**openrc**.sh
+*.pem

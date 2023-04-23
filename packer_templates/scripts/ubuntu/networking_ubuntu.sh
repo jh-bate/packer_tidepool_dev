@@ -5,7 +5,7 @@ major_version="$(echo "$ubuntu_version" | awk -F. '{print $1}')";
 
 if [ "$major_version" -ge "18" ]; then
 echo "Create netplan config for eth0"
-cat <<EOF >/etc/netplan/01-netcfg.yaml;
+sudo cat <<EOF >/etc/netplan/01-netcfg.yaml;
 network:
   version: 2
   ethernets:
